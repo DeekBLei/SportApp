@@ -1,0 +1,108 @@
+﻿<Page
+    x:Class="Gui.Views.CoachesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Gui.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+
+    <Grid Margin="20,20,20,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="3*"/>
+            <RowDefinition Height="8*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition x:Name="Messagebox" Height="3*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="Coaches" Style="{StaticResource HeaderPagina}"/>
+        <Grid Grid.Row="1" Grid.Column="0" Style="{StaticResource GridBorder}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="8*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Coaches"  HorizontalAlignment="Stretch" TextWrapping="Wrap" FontSize="30"  Margin="1" Padding="5" />
+            <Grid Grid.Row="1" Grid.Column="0">
+                <controls:DataGrid 
+                          AutoGenerateColumns="false"
+                          ItemsSource="{Binding FilteredCoachesList, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  
+                          SelectedItem="{Binding CurrentCoach, Mode=TwoWay}" 
+                    
+                    CanUserReorderColumns="True">
+                    <controls:DataGrid.Columns >
+                        <controls:DataGridTextColumn Header="Voornaam" Width="SizeToCells" Binding="{Binding VoorNaam , Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  />
+                        <controls:DataGridTextColumn Header="Achternaam" Width="SizeToHeader" Binding="{Binding AchterNaam , Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  />
+                        <controls:DataGridTextColumn Header="Leeftijd" Width="SizeToHeader" Binding="{Binding Leeftijd , Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  />
+                        <controls:DataGridTextColumn Header="Team" Width="SizeToCells" Binding="{Binding Team.Naam , Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"  />
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
+            </Grid>
+        </Grid>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding LedenAdministratie.ValidationMessage.TotalMessage}"/>
+        <Grid Grid.Row="1" Grid.Column="1" Style="{StaticResource GridBorder}" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="Voornaam" Grid.Column="0" Grid.Row="0" />
+            <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal">
+                <TextBox  Text="{Binding CurrentCoachCopy.VoorNaam, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Command="{Binding NewCoach_Click, Mode=TwoWay}" 
+                            Content="New coach"                         />
+            </StackPanel>
+            <TextBlock Text="Achternaam" Grid.Column="0" Grid.Row="1"/>
+            <TextBox Text="{Binding CurrentCoachCopy.AchterNaam, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="1"/>
+            <TextBlock Text="Leeftijd" Grid.Column="0" Grid.Row="2"/>
+            <TextBox Text="{Binding CurrentCoachCopy.Leeftijd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="2"  />
+            <TextBlock Text="Geslacht" Grid.Column="0" Grid.Row="3" />
+            <ComboBox ItemsSource="{Binding GeslachtList}" SelectedItem="{Binding CurrentCoachCopy.Geslacht, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Grid.Row="3"   />
+            <TextBlock Text="Team" 
+                       Grid.Column="0" 
+                       Grid.Row="5"  />
+            <StackPanel Grid.Column="1" Grid.Row="5" Orientation="Horizontal" MaxHeight="200">
+                <TextBox  Text="{Binding CurrentCoachCopy.Team.Naam, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                <Button Command="{Binding ShowHideSelectTeamPopUp_Click, Mode=TwoWay}" 
+                            Content="Select team"                         />
+                <controls:DataGrid 
+                        x:Name="TeamList"                      
+                          ItemsSource="{Binding FilteredTeamList, Mode=TwoWay}"  
+                          SelectedItem="{Binding SelectedTeam, Mode=TwoWay}"
+                     AutoGenerateColumns="False"
+                         Visibility= "{Binding TeamSelectListVisible, Mode=TwoWay}"
+                          MaxHeight="200">
+                    <controls:DataGrid.Columns >
+                        <controls:DataGridTextColumn Header="Naam" Width="SizeToCells" Binding="{Binding Naam , Mode=TwoWay}"  />
+                        <controls:DataGridTextColumn Header="Rang" Width="SizeToHeader" Binding="{Binding Punten , Mode=TwoWay}" />
+                        <controls:DataGridTextColumn Header="Geslacht" Width="SizeToHeader" Binding="{Binding Geslacht , Mode=TwoWay}" />
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Command="{Binding SaveCoach_Click, Mode=TwoWay}"  Grid.Column="0">Save Coach</Button>
+            <Button Command="{Binding DeleteCoach_Click, Mode=TwoWay}" Grid.Column="1">Delete Coach</Button>
+            <Button Command="{Binding CancelEditCoach_Click, Mode=TwoWay}" Grid.Column="2">Cancel</Button>
+        </Grid>
+    </Grid>
+</Page>
+

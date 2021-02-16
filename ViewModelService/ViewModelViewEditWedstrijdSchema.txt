@@ -1,0 +1,323 @@
+using DataTypes;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using ControlService;
+using Interfaces;
+using System.Reflection;
+using System.Collections;
+using DataBaseService;
+using Windows.UI.Popups;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml;
+using System.Collections.ObjectModel;
+
+namespace ViewModelService
+{
+    public class ViewModelViewEditWedstrijdSchema : ViewModelGlobalFilters
+    {
+        //Commands
+        public Command SaveNieuweWedstrijd { get; set; }
+        public Command SpeelWedstrijden { get; set; }
+        public Command PasWedstrijdAan { get; set; }
+        public Command Delete { get; set; }
+        public Command Cancel { get; set; }
+
+
+        //Constructor
+        public ViewModelViewEditWedstrijdSchema()
+        {
+            this.WedstrijdSecretariaat = new WedstrijdSecretariaat(dataBase);
+            this.WedstrijdSimulatie = new WedstrijdSimulatie(dataBase);
+            this.WedstrijdSchema = new ObservableCollection<Wedstrijd>();
+            this.TeamListCombobox = new CommuncatingCombobox<VoetbalTeam>(Utilities.FilterList(dataBase.AlleTeams, FilterString, Geslacht, null));
+            this.ResetUI();
+            this.SaveNieuweWedstrijd = new Command(this.SaveNieuweWedstrijdExecute, () => !InEditingMode);
+            this.PasWedstrijdAan = new Command(this.PasWedstrijdAanExecute, () => InEditingMode);
+            this.Delete = new Command(this.DeleteWedstrijdExecute, () => InEditingMode);
+            this.Cancel = new Command(this.CancelExecute, () => true);
+            this.SpeelWedstrijden = new Command(this.SpeelWedstrijdenExecute, () => true);
+            this.WedstrijdSortOptions = TempWedstrijd.PropertiesToList();
+            this.TeamListCombobox.InputLeftChanged += () => TeamListCombobox.UpdateListRight(TeamListCombobox.InputLeft);
+            this.TeamListCombobox.InputLeftChanged += UpdateComboBox;
+            this.TeamListCombobox.InputRightChanged += () => TeamListCombobox.UpdateListLeft(TeamListCombobox.InputRight);
+            this.TeamListCombobox.InputRightChanged += UpdateComboBox;
+            this.TeamListCombobox.SourceListChanged += () => TeamListCombobox.UpdateListLeft(TeamListCombobox.InputRight);
+            this.TeamListCombobox.SourceListChanged += () => TeamListCombobox.UpdateListRight(TeamListCombobox.InputLeft);
+            this.TeamListCombobox.SourceListChanged += UpdateComboBox;
+            GeslachtChanged += OnGeslachtChanged;
+            FilterStringChanged += UpdateWedstrijdSchema; //TODO alle lijsten updaten
+            this.WedstrijdSecretariaat.Message.Messagechanged += UpdateWedstrijdSchema;
+            this.WedstrijdSimulatie.MessageService.Messagechanged += UpdateWedstrijdMessage;
+            this.WedstrijdSimulatie.MessageService.Messagechanged += UpdateWedstrijdSchema;
+        }
+
+        private void UpdateWedstrijdMessage()
+        {
+            this.WedstrijdMessage = WedstrijdSimulatie.MessageService.TotalMessage;
+        }
+
+
+        //Properties
+        private WedstrijdSecretariaat WedstrijdSecretariaat { get; set; }
+        private WedstrijdSimulatie WedstrijdSimulatie;
+
+        private string _wedstrijdMessage;
+        public string WedstrijdMessage
+        {
+            get => _wedstrijdMessage;
+            set
+            {
+                _wedstrijdMessage = value;
+                OnPropertyChanged(nameof(WedstrijdMessage));
+            }
+        }
+
+        private bool _editingMode;
+        private bool InEditingMode
+        {
+            get => _editingMode;
+            set
+            {
+                _editingMode = value;
+
+                OnPropertyChanged(nameof(this.InEditingMode));
+                this.SaveNieuweWedstrijd?.TriggerCanExecuteChanged();
+                this.PasWedstrijdAan?.TriggerCanExecuteChanged();
+                this.Delete?.TriggerCanExecuteChanged();
+            }
+        }
+
+
+        public string ShowEditingMode
+        {
+            get
+            {
+                if (InEditingMode)
+                {
+                    return "Pas wedstrijd aan:";
+                }
+                else
+                {
+                    return "Plan nieuwe wedstrijd";
+                }
+            }
+        }
+
+
+        public Wedstrijd CopyWedstrijd
+        {
+
+            set
+            {
+                if (value != null)
+                {
+                    this.TempWedstrijd = value.ShallowCopy();
+                    TeamListCombobox.InputLeft = TempWedstrijd.ThuisTeam.NaamToString();
+                    TeamListCombobox.InputRight = TempWedstrijd.UitTeam.NaamToString();
+                    this.OnPropertyChanged(nameof(TempWedstrijd));
+                    InEditingMode = true;
+                }
+            }
+        }
+
+        public Wedstrijd _tempWedstrijd;
+        public Wedstrijd TempWedstrijd
+        {
+            get => _tempWedstrijd;
+            set
+            {
+                this._tempWedstrijd = value;
+                this.OnPropertyChanged(nameof(TempWedstrijd));
+            }
+        }
+        private string _message;
+        public string InvoerFeedbackMessage
+        {
+            get => _message;
+            set
+            {
+                this._message = value;
+                OnPropertyChanged(nameof(InvoerFeedbackMessage));
+            }
+        }
+
+        public List<string> GeslachtsList { get; set; } = Misc.GeslachtsList; // Lijst voor combobox
+
+        private string _filterWedstrijdSchemaString;
+        public string FilterWedstrijdSchemaString
+        {
+            get { return _filterWedstrijdSchemaString; }
+            set
+            {
+                _filterWedstrijdSchemaString = value;
+                UpdateWedstrijdSchema();
+                //this.WedstrijdSchema = Utilities.FilterList(this.dataBase.AlleWedstrijden, this.FilterWedstrijdSchemaString, Geslacht);
+                OnPropertyChanged(nameof(FilterWedstrijdSchemaString));
+
+            }
+        }
+
+        private string _filterTeamListString;
+        public string FilterTeamListString
+        {
+            get { return _filterTeamListString; }
+            set
+            {
+                _filterTeamListString = value;
+                this.TeamListCombobox.SourceListT = Utilities.FilterList(this.dataBase.AlleTeams, this.FilterTeamListString, Geslacht, null);
+            }
+        }
+
+
+        private CommuncatingCombobox<VoetbalTeam> _TeamListCombobox;
+        public CommuncatingCombobox<VoetbalTeam> TeamListCombobox
+        {
+            get { return _TeamListCombobox; }
+            private set
+            {
+                _TeamListCombobox = value;
+                OnPropertyChanged(nameof(TeamListCombobox));
+            }
+        }
+
+        private ObservableCollection<Wedstrijd> _wedStrijdSchema;
+        public ObservableCollection<Wedstrijd> WedstrijdSchema //Lijst van wedstrijden zichtbaar in View
+        {
+            get => _wedStrijdSchema;
+            set
+            {
+                _wedStrijdSchema = value;
+                this.OnPropertyChanged(nameof(WedstrijdSchema));
+            }
+        }
+
+        public ObservableCollection<string> WedstrijdSortOptions { get; private set; }
+
+        private string _sortWedstrijdSchema;
+        public string SortWedstrijdSchema
+        {
+            get => _sortWedstrijdSchema;
+            set
+            {
+                switch (value)
+                {
+                    case
+                        (nameof(TempWedstrijd.Datum)):
+                        {
+                            WedstrijdSchema.OrderBy(wedstrijd=>wedstrijd.Datum);
+                        }
+                        break;
+                    case
+                   "datum":
+                        {
+                            //TODO implement meerdere opties
+                        }
+                        break;
+                };
+                this._sortWedstrijdSchema = value;
+                this.OnPropertyChanged(nameof(WedstrijdSchema));
+                this.OnPropertyChanged(nameof(SortWedstrijdSchema));
+            }
+        }
+
+
+        //Methods
+        private void UpdateComboBox()
+        {
+            CommuncatingCombobox<VoetbalTeam> temp = TeamListCombobox.ShallowCopy();
+            this.TeamListCombobox = temp;
+            OnPropertyChanged(nameof(TeamListCombobox));
+        }
+
+        private void UpdateWedstrijdSchema()
+        {
+            //    var temp = this.WedstrijdSchema;
+            //    this.WedstrijdSchema = new ObservableCollection<Wedstrijd>();
+            //    this.WedstrijdSchema = temp;
+            this.WedstrijdSchema = Utilities.FilterList(this.dataBase.AlleWedstrijden, this.FilterWedstrijdSchemaString, Geslacht, null);
+        }
+
+        private void OnGeslachtChanged()
+        {
+            this.TeamListCombobox.SourceListT = Utilities.FilterList(this.dataBase.AlleTeams, this.FilterTeamListString, Geslacht, null);
+            this.TeamListCombobox.ResetInput();
+            UpdateWedstrijdSchema();
+            // this.WedstrijdSchema = Utilities.FilterList(this.dataBase.AlleWedstrijden, this.FilterWedstrijdSchemaString, Geslacht);
+
+        }
+
+        async private void SpeelWedstrijdenExecute()
+        {
+
+            foreach (Wedstrijd wedstrijd in WedstrijdSchema)
+            {
+
+                //Task T = Task.Run(() => this.WedstrijdSecretariaat.SpeelWedstrijd(wedstrijd));
+                await this.WedstrijdSimulatie.AsyncSpeelWedstrijd(dataBase, wedstrijd);
+
+            }
+            UpdateWedstrijdSchema();
+
+            // this.WedstrijdSchema = Utilities.FilterList(this.dataBase.AlleWedstrijden, this.FilterWedstrijdSchemaString, Geslacht);
+        }
+
+        private void DeleteWedstrijdExecute()
+        {
+            //if (this.dataBase.AlleWedstrijden.Exists(p => p.WedstrijdId == TempWedstrijd.WedstrijdId))
+            //{
+
+                //verwijder wedstrijd als deze bestaat
+                dataBase.AlleWedstrijden.Remove(dataBase.AlleWedstrijden.Where(p => p.WedstrijdId == TempWedstrijd.WedstrijdId).FirstOrDefault());
+                this.InvoerFeedbackMessage = $"Wedstrijd {TempWedstrijd.NaamToString()} is verwijderd";
+                this.ResetUI();
+          //  }
+        }
+
+        private void CancelExecute()
+        {
+            ResetUI();
+        }
+
+        private void SaveNieuweWedstrijdExecute()
+        {
+
+            this.TempWedstrijd.ThuisTeam = dataBase.AlleTeams.Where(p => p.NaamToString() == this.TeamListCombobox.InputLeft).FirstOrDefault();
+            this.TempWedstrijd.UitTeam = dataBase.AlleTeams.Where(p => p.NaamToString() == this.TeamListCombobox.InputRight).FirstOrDefault();
+            this.TempWedstrijd.Geslacht = Geslacht;
+            this.TempWedstrijd.Datum = this.TempWedstrijd.Datum.Date + this.TempWedstrijd.Tijd;
+            if (this.WedstrijdSecretariaat.ValidateWedstrijd(TempWedstrijd))
+            {
+                this.
+                //verwijder oude wedstrijd als deze bestaat
+                dataBase.AlleWedstrijden.Remove(dataBase.AlleWedstrijden.Where(p => p.WedstrijdId == TempWedstrijd.WedstrijdId).FirstOrDefault());
+                //voeg nieuwe wedstrijd toe
+                DatabaseControl databaseControl = new DatabaseControl();
+                databaseControl.VoegNieuweWedstrijdToe(dataBase, TempWedstrijd);
+                //reset UI
+                this.ResetUI();
+
+            }
+            this.InvoerFeedbackMessage = WedstrijdSecretariaat.Message.TotalMessage;
+        }
+
+        private void PasWedstrijdAanExecute()
+        {
+            SaveNieuweWedstrijdExecute();
+        }
+
+        //reset UI
+        private void ResetUI()
+        {
+            this.TempWedstrijd = new Wedstrijd();
+            this.WedstrijdSchema = Utilities.FilterList(this.dataBase.AlleWedstrijden, this.FilterWedstrijdSchemaString, Geslacht, null);
+            this.TeamListCombobox.ResetInput();
+            this.UpdateComboBox();
+            this.TempWedstrijd.Datum = DateTimeOffset.Now;
+            this.TempWedstrijd.Tijd = this.TempWedstrijd.Datum.TimeOfDay;
+            InEditingMode = false;
+        }
+    }
+}

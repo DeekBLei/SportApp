@@ -1,0 +1,146 @@
+﻿<Page
+    x:Class="Gui.Views.ViewEditWedstrijdSchema"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Gui.Views"
+    xmlns:local2="using:Gui"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Windows10version1809="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 7)" xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid   >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="8*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="*"/>
+
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <!--         HoofdKolommen    0                 -->
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Wedstrijdschema" Style="{StaticResource HeaderPagina}" Grid.ColumnSpan="2" />
+            <Grid Grid.Row="1" Grid.Column="0" Style="{StaticResource GridBorder}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="8*"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Schema" Style="{StaticResource Header1}" />
+                <controls:DataGrid x:Name="TeamList" 
+                               Grid.Row="1"  
+                                   ItemsSource="{Binding FilteredWedstrijdList, Mode=TwoWay}"
+                       SelectedItem="{Binding CurrentWedstrijd, Mode=TwoWay,  UpdateSourceTrigger=PropertyChanged}" 
+                               AutoGenerateColumns="False"  >
+                    <controls:DataGrid.Columns >
+
+                        <controls:DataGridTextColumn Header="Thuisteam" Width="SizeToHeader" Binding="{Binding ThuisTeam.Naam , Mode=TwoWay}" />
+                        <controls:DataGridTextColumn Header="Uitteam" Width="SizeToHeader" Binding="{Binding UitTeam.Naam , Mode=TwoWay}"  />
+                        <controls:DataGridTextColumn Header="Datum" Width="SizeToCells" Binding="{Binding Datum.DateTime , Mode=TwoWay}" />
+                        <controls:DataGridTextColumn Header="Uitslag" Width="SizeToHeader" Binding="{Binding Uitslag , Mode=TwoWay}" />
+                        <controls:DataGridTextColumn Header="Geslacht" Width="SizeToHeader" Binding="{Binding Geslacht , Mode=TwoWay}" />
+
+                    </controls:DataGrid.Columns>
+                </controls:DataGrid>
+            </Grid>
+            <Button Grid.Row="2" Grid.Column="0" x:Name="SpeelWedstrijden" Command="{Binding SpeelWedstrijden, Mode=TwoWay}">Speel wedstrijden</Button>
+
+            <!--         HoofdKolommen   1                 -->
+            <TextBlock 
+                Grid.Row="3"
+                Grid.Column="1" 
+                Text="{Binding WedstrijdSecretariaat.Message.TotalMessage, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock 
+                Grid.Row="3"
+                Grid.Column="0" 
+                Text="{Binding WedstrijdSecretariaat.WedstrijdSimulatie.Message.TotalMessage, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}"/>
+            <TextBlock 
+                Grid.Row="3"
+                Grid.Column="1" 
+                Text="{Binding InvoerFeedbackMessage, Mode=TwoWay , UpdateSourceTrigger=PropertyChanged}"/>
+            <Grid 
+                Grid.Row="1"
+                Grid.Column="1" >
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*"/>
+                    <RowDefinition Height="5*"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0"  Style="{StaticResource GridBorder}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3" VerticalAlignment="Top" Margin="17,10,-17,0" Grid.RowSpan="4" >
+                        <TextBlock Text="Wedstrijd: "  Style="{StaticResource Header2}"/>
+                        <TextBlock x:Name="ThuisteamTemp" Text="{Binding TeamListCombobox.InputLeft, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Header2}"/>
+                        <TextBlock Text=" - " Style="{StaticResource Header2}" />
+                        <TextBlock x:Name="UitTeamTemp" Text="{Binding TeamListCombobox.InputRight, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Header2}"/>
+                    </StackPanel>
+
+                </Grid>
+                <Grid Grid.Row="1" Style="{StaticResource GridBorder}" >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="TeamThuis" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" FontSize="16" />
+                    <TextBlock Text="Teamuit" Grid.Column="0" Grid.Row="2" HorizontalAlignment="Left" FontSize="16"/>
+                    <TextBlock Text="Datum" Grid.Column="0" Grid.Row="3" HorizontalAlignment="Left" FontSize="16"/>
+                    <TextBlock Text="Tijd" Grid.Column="0" Grid.Row="4" HorizontalAlignment="Left" FontSize="16"/>
+
+
+                    <ComboBox x:Name="ThuisTeam"  
+                              SelectedValue="{Binding  TeamListCombobox.InputLeft, Mode=TwoWay}" 
+                              ItemsSource="{Binding  TeamListCombobox.ListLeft, Mode=TwoWay}" 
+                              Grid.Column="1" Grid.Row="1" 
+                                             />
+                    <!--<TextBox Text="{Binding CurrentTeam.Coach, Mode=TwoWay}" Grid.Column="1" Grid.Row="1" HorizontalAlignment="Stretch" FontSize="16" Name="achternaam" TextWrapping="Wrap" />-->
+                    <ComboBox Name ="UitTeam" 
+                              SelectedValue="{Binding  TeamListCombobox.InputRight, Mode=TwoWay}"
+                              ItemsSource="{Binding   TeamListCombobox.ListRight, Mode=TwoWay}" 
+                              Grid.Column="1" 
+                              Grid.Row="2" 
+                              />
+                    <DatePicker Name="wedstrijdDatePicker" Grid.Column="1" Grid.Row="3" Windows10version1809:SelectedDate="{Binding CurrentWedstrijdCopy.Datum, Mode=TwoWay}" />
+                    <!--SelectedDate="{Binding CurrentWedstrijdCopy.Datum, Mode=TwoWay}"-->
+
+                    <TimePicker Name="Tijd" Grid.Column="1" Grid.Row="4" Windows10version1809:SelectedTime="{Binding CurrentWedstrijdCopy.Tijd, Mode=TwoWay}"/>
+                    <!--SelectedTime="{Binding CurrentWedstrijdCopy.Tijd, Mode=TwoWay}"-->
+
+                </Grid>
+
+
+            </Grid >
+            <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal"  >
+                <Button Command="{Binding SaveNieuweWedstrijd  }" Visibility="{Binding SaveNieuweWedstrijd.IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Save</Button>
+                <Button  Command="{Binding PasWedstrijdAan  }"  Visibility="{Binding PasWedstrijdAan.IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Pas aan</Button>
+                <Button  Command="{Binding Cancel  }"  Visibility="{Binding Cancel.IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Cancel</Button>
+                <Button  Command="{Binding Delete  }"  Visibility="{Binding Delete.IsVisible, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">Delete</Button>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Page>
